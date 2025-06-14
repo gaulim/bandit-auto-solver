@@ -1,0 +1,6 @@
+
+# Stored passwords
+.bandit_pass/
+
+# Logs per level 
+logs/
