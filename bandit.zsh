@@ -46,6 +46,17 @@ function logger() {
     echo "$log" >> "$log_dir/$log_file"
 }
 
+function remote_execute_command() {
+    local bandit_user="$1"
+    local command="$2"
+
+    result=$(ssh -o StrictHostKeyChecking=no -p $PORT ${bandit_user}@${HOST} "$command")
+    local result_code=$?
+
+    echo $result
+    return $((result_code & 0xFF))
+}
+
 
 # ------------------------------------------------------------------------------
 # Entry point
@@ -105,7 +116,7 @@ logger "info" "USER: $user"
 logger "info" "CMD: $cmd"
 
 # --- Run Command ---
-result=$(ssh -o StrictHostKeyChecking=no -p $PORT ${user}@${HOST} "$cmd")
+result=$(remote_execute_command "$user" "$cmd")
 result_code=$?
 
 if [[ $result_code -ne 0 ]]; then
