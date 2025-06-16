@@ -6,20 +6,29 @@ unset LANG
 unset LC_ALL
 
 this_file=$(basename "$0")
+work_dir=$(dirname "$0")
 
 readonly PORT=2220
 readonly HOST="bandit.labs.overthewire.org"
 readonly START_LEVEL=0
 readonly END_LEVEL=34
 
-typeset user
+typeset pass_dir="$work_dir/.bandit_pass"
+typeset log_dir="$work_dir/logs"
+
 typeset level_input
 typeset -i level
 typeset cmd
-typeset result
-typeset -i result_code
 
 printf "\n$this_file - Bandit Solution Script\n"
+
+# --- Make directories ---
+mkdir -p "$pass_dir" "$log_dir"
+
+# --- Save level 0 password ---
+if [[ ! -f "$pass_dir/bandit00" ]]; then
+    echo "bandit0" > "$pass_dir/bandit00"
+fi
 
 # --- Level selection ---
 echo
@@ -42,7 +51,14 @@ case $level in
         ;;
 esac
 
-user="bandit$level"
+typeset user="bandit$level"
+typeset pwd_file="bandit$(printf '%02d' $((level + 1)))"
+typeset log_file="bandit$(printf '%02d' $level).log"
+typeset result
+typeset -i result_code
+
+# --- Save command to log ---
+echo "$cmd" > "$log_dir/$log_file"
 
 # --- Run Command ---
 result=$(ssh -o StrictHostKeyChecking=no -p $PORT ${user}@${HOST} "$cmd")
@@ -53,6 +69,10 @@ if [[ $result_code -ne 0 ]]; then
     exit 1
 fi
 
+# --- Save password ---
+echo "$result" > "$pass_dir/$pwd_file"
+
+# --- Output password ---
 printf "\n[RESULT] [Level $level → Level $((level + 1))] password: $result\n"
 
 exit 0
