@@ -16,10 +16,10 @@ typeset cmd
 typeset result
 typeset -i result_code
 
-echo "\n$this_file - Bandit Solution Script"
-echo
+printf "\n$this_file - Bandit Solution Script\n"
 
 # --- Level selection ---
+echo
 read "level?Enter Bandit level: "
 
 case $level in
@@ -27,7 +27,7 @@ case $level in
         cmd="sed -n 's/^.*: //p' readme 2>/dev/null"
         ;;
     *)
-        echo "\n[INFO] This level $level is still being solved. Updates will be posted soon."
+        printf "\n[INFO] This level $level is still being solved. Updates will be posted soon.\n"
         exit 1
         ;;
 esac
@@ -39,10 +39,10 @@ result=$(ssh -o StrictHostKeyChecking=no -p $PORT ${user}@${HOST} "$cmd")
 result_code=$?
 
 if [[ $result_code -ne 0 ]]; then
-    echo "\n[ERROR] Command failed."
+    printf "\n[ERROR] Command failed.\n"
     exit 1
 fi
 
-echo "\n[RESULT] [Level $level → Level $((level + 1))] password: $result"
+printf "\n[RESULT] [Level $level → Level $((level + 1))] password: $result\n"
 
 exit 0
