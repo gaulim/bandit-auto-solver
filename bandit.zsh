@@ -9,9 +9,12 @@ this_file=$(basename "$0")
 
 readonly PORT=2220
 readonly HOST="bandit.labs.overthewire.org"
+readonly START_LEVEL=0
+readonly END_LEVEL=34
 
 typeset user
-typeset level
+typeset level_input
+typeset -i level
 typeset cmd
 typeset result
 typeset -i result_code
@@ -20,7 +23,14 @@ printf "\n$this_file - Bandit Solution Script\n"
 
 # --- Level selection ---
 echo
-read "level?Enter Bandit level: "
+while true; do
+    read "level_input?Enter Bandit level (${START_LEVEL}~$((END_LEVEL - 1))): "
+    if [[ $level_input =~ '^[0-9]+$' && $level_input -ge $START_LEVEL && $level_input -lt $END_LEVEL ]]; then
+        level=$level_input
+        break
+    fi
+    printf "Invalid input.\n\n"
+done
 
 case $level in
     0)
