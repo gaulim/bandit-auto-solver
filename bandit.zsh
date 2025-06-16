@@ -15,6 +15,6 @@ readonly CMD="cat readme"
 echo "\n$this_file - Bandit Solution Script"
 echo
 
-ssh -p $PORT ${USER}@${HOST} "$CMD"
+ssh -o StrictHostKeyChecking=no -p $PORT ${USER}@${HOST} "$CMD"
 
 exit 0
