@@ -8,6 +8,49 @@ unset LC_ALL
 this_file=$(basename "$0")
 work_dir=$(dirname "$0")
 
+
+# ------------------------------------------------------------------------------
+# Function declarations / implementations
+# ------------------------------------------------------------------------------
+
+# Usage: logger "info" "message"
+function logger() {
+    local variant="${1:-info}"
+    local message="${2:-}"
+    local log
+
+    if [ -z "$message" ]; then
+        return
+    fi
+
+    case "$variant" in
+        info)
+            printf "\n\033[34m[L%02d-INFO]\033[0m %s\n" "$level" "$message"
+            log=$(printf "%s [INFO] %s\n" "$(date +%T)" "$message")
+            ;;
+        result)
+            printf "\n\033[32m[L%02d-RESULT]\033[0m %s\n" "$level" "$message"
+            log=$(printf "%s [RESULT] %s\n" "$(date +%T)" "$message")
+            ;;
+        warning)
+            printf "\n\033[33m[L%02d-WARN]\033[0m %s\n" "$level" "$message"
+            log=$(printf "%s [WARN] %s\n" "$(date +%T)" "$message")
+            ;;
+        error)
+            printf "\n\033[31m[L%02d-ERROR]\033[0m %s\n" "$level" "$message"
+            log=$(printf "%s [ERROR] %s\n" "$(date +%T)" "$message")
+            ;;
+    esac
+
+    # Add to log file
+    echo "$log" >> "$log_dir/$log_file"
+}
+
+
+# ------------------------------------------------------------------------------
+# Entry point
+# ------------------------------------------------------------------------------
+
 readonly PORT=2220
 readonly HOST="bandit.labs.overthewire.org"
 readonly START_LEVEL=0
@@ -57,15 +100,16 @@ typeset log_file="bandit$(printf '%02d' $level).log"
 typeset result
 typeset -i result_code
 
-# --- Save command to log ---
-echo "$cmd" > "$log_dir/$log_file"
+logger "info" "LEVEL: $level"
+logger "info" "USER: $user"
+logger "info" "CMD: $cmd"
 
 # --- Run Command ---
 result=$(ssh -o StrictHostKeyChecking=no -p $PORT ${user}@${HOST} "$cmd")
 result_code=$?
 
 if [[ $result_code -ne 0 ]]; then
-    printf "\n[ERROR] Command failed.\n"
+    logger "error" "Command failed."
     exit 1
 fi
 
@@ -73,6 +117,6 @@ fi
 echo "$result" > "$pass_dir/$pwd_file"
 
 # --- Output password ---
-printf "\n[RESULT] [Level $level → Level $((level + 1))] password: $result\n"
+logger "result" "[Level $level → Level $((level + 1))] password: $result"
 
 exit 0
