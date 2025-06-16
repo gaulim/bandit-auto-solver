@@ -9,17 +9,33 @@ this_file=$(basename "$0")
 
 readonly PORT=2220
 readonly HOST="bandit.labs.overthewire.org"
-readonly USER="bandit0"
-readonly CMD="sed -n 's/^.*: //p' readme 2>/dev/null"
 
+typeset user
+typeset level
+typeset cmd
 typeset result
 typeset -i result_code
 
 echo "\n$this_file - Bandit Solution Script"
 echo
 
+# --- Level selection ---
+read "level?Enter Bandit level: "
+
+case $level in
+    0)
+        cmd="sed -n 's/^.*: //p' readme 2>/dev/null"
+        ;;
+    *)
+        echo "\n[INFO] This level $level is still being solved. Updates will be posted soon."
+        exit 1
+        ;;
+esac
+
+user="bandit$level"
+
 # --- Run Command ---
-result=$(ssh -o StrictHostKeyChecking=no -p $PORT ${USER}@${HOST} "$CMD")
+result=$(ssh -o StrictHostKeyChecking=no -p $PORT ${user}@${HOST} "$cmd")
 result_code=$?
 
 if [[ $result_code -ne 0 ]]; then
@@ -27,6 +43,6 @@ if [[ $result_code -ne 0 ]]; then
     exit 1
 fi
 
-echo "\n[RESULT] [Level 0 → Level 1] password: $result"
+echo "\n[RESULT] [Level $level → Level $((level + 1))] password: $result"
 
 exit 0
