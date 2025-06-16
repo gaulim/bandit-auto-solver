@@ -5,6 +5,16 @@
 unset LANG
 unset LC_ALL
 
-ssh -p 2220 bandit0@bandit.labs.overthewire.org "cat readme"
+this_file=$(basename "$0")
+
+readonly PORT=2220
+readonly HOST="bandit.labs.overthewire.org"
+readonly USER="bandit0"
+readonly CMD="cat readme"
+
+echo "\n$this_file - Bandit Solution Script"
+echo
+
+ssh -p $PORT ${USER}@${HOST} "$CMD"
 
 exit 0
