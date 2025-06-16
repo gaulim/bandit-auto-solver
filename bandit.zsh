@@ -10,7 +10,7 @@ this_file=$(basename "$0")
 readonly PORT=2220
 readonly HOST="bandit.labs.overthewire.org"
 readonly USER="bandit0"
-readonly CMD="cat readme"
+readonly CMD="sed -n 's/^.*: //p' readme 2>/dev/null"
 
 echo "\n$this_file - Bandit Solution Script"
 echo
