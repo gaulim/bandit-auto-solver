@@ -48,10 +48,17 @@ function logger() {
 
 function remote_execute_command() {
     local user="$1"
-    local cmd="$2"
-    local ssh_cmd="ssh -o StrictHostKeyChecking=no -p $PORT ${user}@${HOST} \"$cmd\""
+    local pwd="$2"
+    local cmd="$3"
+    local ssh_cmd
 
     local result_code
+
+    if [[ "true" == $interactive ]]; then
+        ssh_cmd="ssh -o StrictHostKeyChecking=no -p $PORT ${user}@${HOST} \"$cmd\""
+    else
+        ssh_cmd="sshpass -p \"$pwd\" ssh -T -o LogLevel=ERROR -o StrictHostKeyChecking=no -p $PORT ${user}@${HOST} \"$cmd\""
+    fi
 
     if [[ "true" == $dry_run ]]; then
         result="$ssh_cmd"
@@ -79,6 +86,7 @@ typeset pass_dir="$work_dir/.bandit_pass"
 typeset log_dir="$work_dir/logs"
 
 typeset level_arg=""
+typeset interactive="true"
 typeset dry_run="false"
 
 typeset level_input
@@ -90,6 +98,9 @@ for arg in "$@"; do
     case $arg in
         --level=*)
             level_arg="${arg#*=}"
+            ;;
+        --no-interactive)
+            interactive="false"
             ;;
         --dry-run)
             dry_run="true"
@@ -115,7 +126,7 @@ if [[ -n $level_arg ]]; then
         printf "\n[ERROR] Invalid level argument value.\n"
         exit 1
     fi
-else
+elif [[ "true" == $interactive ]]; then
     echo
     while true; do
         read "level_input?Enter Bandit level (${START_LEVEL}~$((END_LEVEL - 1))): "
@@ -125,6 +136,9 @@ else
         fi
         printf "Invalid input.\n\n"
     done
+else
+    printf "\n[ERROR] No level provided and interactive mode disabled.\n"
+    exit 1
 fi
 
 case $level in
@@ -138,8 +152,10 @@ case $level in
 esac
 
 typeset user="bandit$level"
-typeset pwd_file="bandit$(printf '%02d' $((level + 1)))"
+typeset current_pwd_file="bandit$(printf '%02d' $level)"
+typeset next_pwd_file="bandit$(printf '%02d' $((level + 1)))"
 typeset log_file="bandit$(printf '%02d' $level).log"
+typeset password
 typeset result
 typeset -i result_code
 
@@ -152,8 +168,16 @@ logger "info" "LEVEL: $level"
 logger "info" "USER: $user"
 logger "info" "CMD: $cmd"
 
+# --- Load password if available ---
+if [[ -f "$pass_dir/$current_pwd_file" ]]; then
+    password=$(< "$pass_dir/$current_pwd_file")
+else
+    printf "\n[ERROR] Password for bandit$level not found in $pass_dir\n"
+    exit 1
+fi
+
 # --- Run Command ---
-result=$(remote_execute_command "$user" "$cmd")
+result=$(remote_execute_command "$user" "$password" "$cmd")
 result_code=$?
 
 if [[ $result_code -ne 0 ]]; then
@@ -166,7 +190,7 @@ if [[ "true" == $dry_run ]]; then
     logger "result" "[DRY-RUN] SSH Command: $result"
 else
     # --- Save password and Output password ---
-    echo "$result" > "$pass_dir/$pwd_file"
+    echo "$result" > "$pass_dir/$next_pwd_file"
     logger "result" "[Level $level → Level $((level + 1))] password: $result"
 fi
 
