@@ -47,11 +47,19 @@ function logger() {
 }
 
 function remote_execute_command() {
-    local bandit_user="$1"
-    local command="$2"
+    local user="$1"
+    local cmd="$2"
+    local ssh_cmd="ssh -o StrictHostKeyChecking=no -p $PORT ${user}@${HOST} \"$cmd\""
 
-    result=$(ssh -o StrictHostKeyChecking=no -p $PORT ${bandit_user}@${HOST} "$command")
-    local result_code=$?
+    local result_code
+
+    if [[ "true" == $dry_run ]]; then
+        result="$ssh_cmd"
+        result_code=0
+    else
+        result=$(eval "$ssh_cmd")
+        result_code=$?
+    fi
 
     echo $result
     return $((result_code & 0xFF))
@@ -70,9 +78,20 @@ readonly END_LEVEL=34
 typeset pass_dir="$work_dir/.bandit_pass"
 typeset log_dir="$work_dir/logs"
 
+typeset dry_run="false"
+
 typeset level_input
 typeset -i level
 typeset cmd
+
+# --- Command line argument parsing ---
+for arg in "$@"; do
+    case $arg in
+        --dry-run)
+            dry_run="true"
+            ;;
+    esac
+done
 
 printf "\n$this_file - Bandit Solution Script\n"
 
@@ -111,6 +130,11 @@ typeset log_file="bandit$(printf '%02d' $level).log"
 typeset result
 typeset -i result_code
 
+if [[ $# -eq 0 ]]; then
+    logger "info" "OPTIONS: (none)"
+else
+    logger "info" "OPTIONS: $*"
+fi
 logger "info" "LEVEL: $level"
 logger "info" "USER: $user"
 logger "info" "CMD: $cmd"
@@ -124,10 +148,13 @@ if [[ $result_code -ne 0 ]]; then
     exit 1
 fi
 
-# --- Save password ---
-echo "$result" > "$pass_dir/$pwd_file"
-
-# --- Output password ---
-logger "result" "[Level $level → Level $((level + 1))] password: $result"
+if [[ "true" == $dry_run ]]; then
+    # --- Output SSH Command ---
+    logger "result" "[DRY-RUN] SSH Command: $result"
+else
+    # --- Save password and Output password ---
+    echo "$result" > "$pass_dir/$pwd_file"
+    logger "result" "[Level $level → Level $((level + 1))] password: $result"
+fi
 
 exit 0
