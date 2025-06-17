@@ -78,6 +78,7 @@ readonly END_LEVEL=34
 typeset pass_dir="$work_dir/.bandit_pass"
 typeset log_dir="$work_dir/logs"
 
+typeset level_arg=""
 typeset dry_run="false"
 
 typeset level_input
@@ -87,6 +88,9 @@ typeset cmd
 # --- Command line argument parsing ---
 for arg in "$@"; do
     case $arg in
+        --level=*)
+            level_arg="${arg#*=}"
+            ;;
         --dry-run)
             dry_run="true"
             ;;
@@ -104,15 +108,24 @@ if [[ ! -f "$pass_dir/bandit00" ]]; then
 fi
 
 # --- Level selection ---
-echo
-while true; do
-    read "level_input?Enter Bandit level (${START_LEVEL}~$((END_LEVEL - 1))): "
-    if [[ $level_input =~ '^[0-9]+$' && $level_input -ge $START_LEVEL && $level_input -lt $END_LEVEL ]]; then
-        level=$level_input
-        break
+if [[ -n $level_arg ]]; then
+    if [[ $level_arg =~ '^[0-9]+$' && $level_arg -ge $START_LEVEL && $level_arg -lt $END_LEVEL ]]; then
+        level=$level_arg
+    else
+        printf "\n[ERROR] Invalid level argument value.\n"
+        exit 1
     fi
-    printf "Invalid input.\n\n"
-done
+else
+    echo
+    while true; do
+        read "level_input?Enter Bandit level (${START_LEVEL}~$((END_LEVEL - 1))): "
+        if [[ $level_input =~ '^[0-9]+$' && $level_input -ge $START_LEVEL && $level_input -lt $END_LEVEL ]]; then
+            level=$level_input
+            break
+        fi
+        printf "Invalid input.\n\n"
+    done
+fi
 
 case $level in
     0)
