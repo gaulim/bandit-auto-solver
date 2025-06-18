@@ -25,19 +25,19 @@ function logger() {
 
     case "$variant" in
         info)
-            printf "\n\033[34m[L%02d-INFO]\033[0m %s\n" "$level" "$message"
+            [[ "false" == $quiet ]] && printf "\n\033[34m[L%02d-INFO]\033[0m %s\n" "$level" "$message"
             log=$(printf "%s [INFO] %s\n" "$(date +%T)" "$message")
             ;;
         result)
-            printf "\n\033[32m[L%02d-RESULT]\033[0m %s\n" "$level" "$message"
+            [[ "false" == $quiet ]] && printf "\n\033[32m[L%02d-RESULT]\033[0m %s\n" "$level" "$message"
             log=$(printf "%s [RESULT] %s\n" "$(date +%T)" "$message")
             ;;
         warning)
-            printf "\n\033[33m[L%02d-WARN]\033[0m %s\n" "$level" "$message"
+            [[ "false" == $quiet ]] && printf "\n\033[33m[L%02d-WARN]\033[0m %s\n" "$level" "$message"
             log=$(printf "%s [WARN] %s\n" "$(date +%T)" "$message")
             ;;
         error)
-            printf "\n\033[31m[L%02d-ERROR]\033[0m %s\n" "$level" "$message"
+            [[ "false" == $quiet ]] && printf "\n\033[31m[L%02d-ERROR]\033[0m %s\n" "$level" "$message"
             log=$(printf "%s [ERROR] %s\n" "$(date +%T)" "$message")
             ;;
     esac
@@ -88,6 +88,7 @@ typeset log_dir="$work_dir/logs"
 typeset level_arg=""
 typeset interactive="true"
 typeset dry_run="false"
+typeset quiet="false"
 
 typeset level_input
 typeset -i level
@@ -102,13 +103,16 @@ for arg in "$@"; do
         --no-interactive)
             interactive="false"
             ;;
+        --quiet)
+            quiet="true"
+            ;;
         --dry-run)
             dry_run="true"
             ;;
     esac
 done
 
-printf "\n$this_file - Bandit Solution Script\n"
+[[ "false" == $quiet ]] && printf "\n$this_file - Bandit Solution Script\n"
 
 # --- Make directories ---
 mkdir -p "$pass_dir" "$log_dir"
@@ -172,7 +176,7 @@ logger "info" "CMD: $cmd"
 if [[ -f "$pass_dir/$current_pwd_file" ]]; then
     password=$(< "$pass_dir/$current_pwd_file")
 else
-    printf "\n[ERROR] Password for bandit$level not found in $pass_dir\n"
+    logger "error" "Password for bandit$level not found in $pass_dir"
     exit 1
 fi
 
