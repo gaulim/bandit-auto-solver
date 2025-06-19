@@ -25,25 +25,25 @@ function logger() {
 
     case "$variant" in
         info)
-            [[ "false" == $quiet ]] && printf "\n\033[34m[L%02d-INFO]\033[0m %s\n" "$level" "$message"
+            [[ "false" == $quiet ]] && printf "\n\033[34m[INFO]\033[0m %s\n" "$message"
             log=$(printf "%s [INFO] %s\n" "$(date +%T)" "$message")
             ;;
         result)
-            [[ "false" == $quiet ]] && printf "\n\033[32m[L%02d-RESULT]\033[0m %s\n" "$level" "$message"
+            [[ "false" == $quiet ]] && printf "\n\033[32m[RESULT]\033[0m %s\n" "$message"
             log=$(printf "%s [RESULT] %s\n" "$(date +%T)" "$message")
             ;;
-        warning)
-            [[ "false" == $quiet ]] && printf "\n\033[33m[L%02d-WARN]\033[0m %s\n" "$level" "$message"
+        warn)
+            [[ "false" == $quiet ]] && printf "\n\033[33m[WARN]\033[0m %s\n" "$message"
             log=$(printf "%s [WARN] %s\n" "$(date +%T)" "$message")
             ;;
         error)
-            [[ "false" == $quiet ]] && printf "\n\033[31m[L%02d-ERROR]\033[0m %s\n" "$level" "$message"
+            [[ "false" == $quiet ]] && printf "\n\033[31m[ERROR]\033[0m %s\n" "$message"
             log=$(printf "%s [ERROR] %s\n" "$(date +%T)" "$message")
             ;;
     esac
 
     # Add to log file
-    echo "$log" >> "$log_dir/$log_file"
+    echo "$log" >> "$LOG_DIR/$log_file"
 }
 
 function remote_execute_command() {
@@ -82,8 +82,10 @@ readonly HOST="bandit.labs.overthewire.org"
 readonly START_LEVEL=0
 readonly END_LEVEL=34
 
-typeset pass_dir="$work_dir/.bandit_pass"
-typeset log_dir="$work_dir/logs"
+readonly PASS_DIR="$HOME/.bandit_pass"
+readonly LOG_DIR="/tmp/bandit-auto-solver/logs"
+
+typeset log_file="$(date +%F).log"  # YYYY-MM-DD.log
 
 typeset level_arg=""
 typeset interactive="true"
@@ -93,6 +95,9 @@ typeset quiet="false"
 typeset level_input
 typeset -i level
 typeset cmd
+
+# --- Make directories ---
+mkdir -p "$PASS_DIR" "$LOG_DIR"
 
 # --- Command line argument parsing ---
 for arg in "$@"; do
@@ -114,12 +119,17 @@ done
 
 [[ "false" == $quiet ]] && printf "\n$this_file - Bandit Solution Script\n"
 
-# --- Make directories ---
-mkdir -p "$pass_dir" "$log_dir"
+logger "info" "FILE: $this_file"
+
+if [[ $# -eq 0 ]]; then
+    logger "info" "OPTIONS: (none)"
+else
+    logger "info" "OPTIONS: $*"
+fi
 
 # --- Save level 0 password ---
-if [[ ! -f "$pass_dir/bandit00" ]]; then
-    echo "bandit0" > "$pass_dir/bandit00"
+if [[ ! -f "$PASS_DIR/bandit00" ]]; then
+    echo "bandit0" > "$PASS_DIR/bandit00"
 fi
 
 # --- Level selection ---
@@ -127,7 +137,7 @@ if [[ -n $level_arg ]]; then
     if [[ $level_arg =~ '^[0-9]+$' && $level_arg -ge $START_LEVEL && $level_arg -lt $END_LEVEL ]]; then
         level=$level_arg
     else
-        printf "\n[ERROR] Invalid level argument value.\n"
+        logger "error" "This level $level_arg is invalid."
         exit 1
     fi
 elif [[ "true" == $interactive ]]; then
@@ -141,42 +151,36 @@ elif [[ "true" == $interactive ]]; then
         printf "Invalid input.\n\n"
     done
 else
-    printf "\n[ERROR] No level provided and interactive mode disabled.\n"
+    logger "error" "No level provided and interactive mode disabled."
     exit 1
 fi
+
+logger "info" "LEVEL: $level"
 
 case $level in
     0)
         cmd="sed -n 's/^.*: //p' readme 2>/dev/null"
         ;;
     *)
-        printf "\n[INFO] This level $level is still being solved. Updates will be posted soon.\n"
+        logger "warn" "This level $level is still being solved. Updates will be posted soon."
         exit 1
         ;;
 esac
 
+logger "info" "CMD: $cmd"
+
 typeset user="bandit$level"
 typeset current_pwd_file="bandit$(printf '%02d' $level)"
 typeset next_pwd_file="bandit$(printf '%02d' $((level + 1)))"
-typeset log_file="bandit$(printf '%02d' $level).log"
 typeset password
 typeset result
 typeset -i result_code
 
-if [[ $# -eq 0 ]]; then
-    logger "info" "OPTIONS: (none)"
-else
-    logger "info" "OPTIONS: $*"
-fi
-logger "info" "LEVEL: $level"
-logger "info" "USER: $user"
-logger "info" "CMD: $cmd"
-
 # --- Load password if available ---
-if [[ -f "$pass_dir/$current_pwd_file" ]]; then
-    password=$(< "$pass_dir/$current_pwd_file")
+if [[ -f "$PASS_DIR/$current_pwd_file" ]]; then
+    password=$(< "$PASS_DIR/$current_pwd_file")
 else
-    logger "error" "Password for bandit$level not found in $pass_dir"
+    logger "error" "Password for bandit$level not found in $PASS_DIR"
     exit 1
 fi
 
@@ -194,7 +198,7 @@ if [[ "true" == $dry_run ]]; then
     logger "result" "[DRY-RUN] SSH Command: $result"
 else
     # --- Save password and Output password ---
-    echo "$result" > "$pass_dir/$next_pwd_file"
+    echo "$result" > "$PASS_DIR/$next_pwd_file"
     logger "result" "[Level $level → Level $((level + 1))] password: $result"
 fi
 

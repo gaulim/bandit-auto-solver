@@ -6,4 +6,5 @@ run:
 
 clean:
 	@printf "\n🧹 Cleaning up directory...\n"
-	@rm -rf .bandit_pass logs
+	@rm -rf ~/.bandit_pass
+	@rm -rf /tmp/bandit-auto-solver
