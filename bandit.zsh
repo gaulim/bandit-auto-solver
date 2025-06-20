@@ -89,8 +89,9 @@ typeset log_file="$(date +%F).log"  # YYYY-MM-DD.log
 
 typeset level_arg=""
 typeset interactive="true"
-typeset dry_run="false"
 typeset quiet="false"
+typeset test="false"
+typeset dry_run="false"
 
 typeset level_input
 typeset -i level
@@ -110,6 +111,12 @@ for arg in "$@"; do
             ;;
         --quiet)
             quiet="true"
+            ;;
+        --test)
+            level_arg=0
+            interactive="false"
+            quiet="true"
+            test="true"
             ;;
         --dry-run)
             dry_run="true"
@@ -200,6 +207,18 @@ else
     # --- Save password and Output password ---
     echo "$result" > "$PASS_DIR/$next_pwd_file"
     logger "result" "[Level $level → Level $((level + 1))] password: $result"
+fi
+
+# Test only
+if [[ "true" == $test ]]; then
+    password="$result"
+    remote_execute_command "bandit$((level + 1))" "$password" "echo"
+    result_code=$?
+    if [[ $result_code -eq 0 ]]; then
+        printf "\033[32m[RESULT]\033[0m Test: OK!\n"
+    else
+        printf "\033[32m[RESULT]\033[0m Test: Not OK!\n"
+    fi
 fi
 
 exit 0
