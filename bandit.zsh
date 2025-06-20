@@ -72,6 +72,71 @@ function remote_execute_command() {
     return $((result_code & 0xFF))
 }
 
+# Usage: install_if_command_not_exist <command_name> [<package_name>]
+function install_if_command_not_exist() {
+    local command_name="$1"
+    local package_name="${2:-$1}"
+
+    if [[ -z "$command_name" ]]; then
+        logger "error" "❌ Command name is required."
+        return 1
+    fi
+
+    if ! command -v "$command_name" &> /dev/null; then
+        logger "warn" "🔍 Command '$command_name' not found. Trying to install '$package_name'..."
+
+        if command -v brew &> /dev/null; then
+            logger "info" "📦 Installing '$package_name' via Homebrew..."
+            if [[ "false" == $dry_run ]]; then
+                if [[ "true" == $quiet ]]; then
+                    brew install -q "$package_name" >/dev/null 2>&1
+                else
+                    print ""
+                    brew install -q "$package_name"
+                fi
+            fi
+        elif command -v yum &> /dev/null; then
+            logger "info" "📦 Installing '$package_name' via yum..."
+            if [[ "false" == $dry_run ]]; then
+                if [[ "true" == $quiet ]]; then
+                    sudo yum -y -q install "$package_name" >/dev/null 2>&1
+                else
+                    print ""
+                    sudo yum -y -q install "$package_name"
+                fi
+            fi
+        elif command -v apt &> /dev/null; then
+            logger "info" "📦 Installing '$package_name' via apt..."
+            if [[ "false" == $dry_run ]]; then
+                if [[ "true" == $quiet ]]; then
+                    sudo apt -y -q install "$package_name" >/dev/null 2>&1
+                else
+                    print ""
+                    sudo apt -y -q install "$package_name"
+                fi
+            fi
+        else
+            logger "error" "❌ No supported package manager found to install '$package_name'."
+            return 1
+        fi
+    fi
+
+    return 0
+}
+
+function install_require_packages() {
+
+    # --- Install jq ---
+    install_if_command_not_exist jq
+
+    # --- Install sshpass if not interactive ---
+    if [[ "false" == $interactive ]]; then
+        install_if_command_not_exist sshpass
+    fi
+
+    return 0
+}
+
 
 # ------------------------------------------------------------------------------
 # Entry point
@@ -133,6 +198,9 @@ if [[ $# -eq 0 ]]; then
 else
     logger "info" "OPTIONS: $*"
 fi
+
+# --- Install require packages ---
+install_require_packages
 
 # --- Save level 0 password ---
 if [[ ! -f "$PASS_DIR/bandit00" ]]; then

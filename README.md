@@ -38,6 +38,11 @@ make clean
 
 ## 🛡️ Notes
 
+- Make sure you have `jq` installed
+  - macOS: `brew install jq`
+  - Redhat: `sudo yum install jq`
+  - Ubuntu: `sudo apt install jq`
+
 - Make sure you have `sshpass` installed
   - macOS: `brew install sshpass`
   - Redhat: `sudo yum install sshpass`
