@@ -1,5 +1,19 @@
 # 🕵️ Bandit Auto Solver
 
+<!-- ![stars](https://img.shields.io/github/stars/gaulim/bandit-auto-solver?style=social) -->
+<!-- ![license](https://img.shields.io/github/license/gaulim/bandit-auto-solver) -->
+
+![script](https://img.shields.io/badge/script-zsh-blue)
+![lang](https://img.shields.io/github/languages/top/gaulim/bandit-auto-solver)
+![code size](https://img.shields.io/github/languages/code-size/gaulim/bandit-auto-solver)
+![last commit](https://img.shields.io/github/last-commit/gaulim/bandit-auto-solver)
+![auto-run](https://img.shields.io/badge/auto--run-supported-success)
+
+![caffeine](https://img.shields.io/badge/caffeine-900mg-red)
+![IQ](https://img.shields.io/badge/IQ-Over_9000%21-yellow)
+![hack](https://img.shields.io/badge/hack_mode-enabled-brightgreen)
+![nerd](https://img.shields.io/badge/status-certified--nerd-blueviolet)
+
 Automated solver for [OverTheWire: Bandit](https://overthewire.org/wargames/bandit/) wargame (Levels 0 to 33)
 
 ## ✨ Features
