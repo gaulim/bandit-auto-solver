@@ -17,7 +17,7 @@ work_dir=$(dirname "$0")
 function logger() {
     local variant="${1:-info}"
     local message="${2:-}"
-    local log
+    local tag
 
     if [ -z "$message" ]; then
         return
@@ -25,25 +25,30 @@ function logger() {
 
     case "$variant" in
         info)
-            [[ "false" == $quiet ]] && printf "\n\033[34m[INFO]\033[0m %s\n" "$message"
-            log=$(printf "%s [INFO] %s\n" "$(date +%T)" "$message")
+            tag="INFO"
+            [[ "false" == $quiet ]] && printf "\n\033[34m[$tag]\033[0m $message\n"
             ;;
         result)
-            [[ "false" == $quiet ]] && printf "\n\033[32m[RESULT]\033[0m %s\n" "$message"
-            log=$(printf "%s [RESULT] %s\n" "$(date +%T)" "$message")
+            tag="RESULT"
+            [[ "false" == $quiet ]] && printf "\n\033[32m[$tag]\033[0m $message\n"
             ;;
         warn)
-            [[ "false" == $quiet ]] && printf "\n\033[33m[WARN]\033[0m %s\n" "$message"
-            log=$(printf "%s [WARN] %s\n" "$(date +%T)" "$message")
+            tag="WARN"
+            [[ "false" == $quiet ]] && printf "\n\033[33m[$tag]\033[0m $message\n"
             ;;
         error)
-            [[ "false" == $quiet ]] && printf "\n\033[31m[ERROR]\033[0m %s\n" "$message"
-            log=$(printf "%s [ERROR] %s\n" "$(date +%T)" "$message")
+            tag="ERROR"
+            [[ "false" == $quiet ]] && printf "\n\033[31m[$tag]\033[0m $message\n"
+            ;;
+        *)
+            print "\n❌ Invalid log variant. [message: $message]"
+            exit 1
             ;;
     esac
 
     # Add to log file
-    echo "$log" >> "$LOG_DIR/$log_file"
+    local log=$(print "$(date +%T) [$tag] $message\n" 2>&1)
+    print -r -- "$log" >> "$LOG_DIR/$log_file"
 }
 
 function remote_execute_command() {
