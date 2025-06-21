@@ -16,6 +16,7 @@ Automated solver for [OverTheWire: Bandit](https://overthewire.org/wargames/band
 bandit-auto-solver/
 ├── bandit-auto.zsh      # Sequential runner from level 0 to 33
 ├── bandit.zsh           # Single-level executor with password auto-login
+├── LICENSE              # MIT License file
 ├── Makefile             # run/auto/test/clean commands
 ├── README.md            # This file
 ```
@@ -52,3 +53,7 @@ make clean
 
 This tool is for educational use only. Do not use `sshpass` with sensitive systems.  
 Passwords are stored in plaintext in `~/.bandit_pass/`.
+
+## 📄 License
+
+This project is licensed under the [MIT License](./LICENSE) by **gaulim**.
