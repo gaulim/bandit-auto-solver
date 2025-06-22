@@ -29,6 +29,7 @@ Automated solver for [OverTheWire: Bandit](https://overthewire.org/wargames/band
 ```text
 bandit-auto-solver/
 ├── bandit-auto.zsh      # Sequential runner from level 0 to 33
+├── bandit-levels.json   # JSON configuration with per-level commands, descriptions, and hints
 ├── bandit.zsh           # Single-level executor with password auto-login
 ├── LICENSE              # MIT License file
 ├── Makefile             # run/auto/test/clean commands

@@ -1,0 +1,8 @@
+[
+    {
+        "level": 0,
+        "description": "Extract the password value from the 'readme' file by printing only the part after the colon.",
+        "hint_cmd": "cat readme",
+        "runner":"sed -n 's/^.*: //p' readme 2>/dev/null"
+    }
+]

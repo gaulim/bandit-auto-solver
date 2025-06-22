@@ -152,6 +152,7 @@ readonly HOST="bandit.labs.overthewire.org"
 readonly START_LEVEL=0
 readonly END_LEVEL=34
 
+readonly ENTRY_JSON="$work_dir/bandit-levels.json"
 readonly PASS_DIR="$HOME/.bandit_pass"
 readonly LOG_DIR="/tmp/bandit-auto-solver/logs"
 
@@ -165,7 +166,6 @@ typeset dry_run="false"
 
 typeset level_input
 typeset -i level
-typeset cmd
 
 # --- Make directories ---
 mkdir -p "$PASS_DIR" "$LOG_DIR"
@@ -237,35 +237,35 @@ fi
 
 logger "info" "LEVEL: $level"
 
-case $level in
-    0)
-        cmd="sed -n 's/^.*: //p' readme 2>/dev/null"
-        ;;
-    *)
-        logger "warn" "This level $level is still being solved. Updates will be posted soon."
-        exit 1
-        ;;
-esac
-
-logger "info" "CMD: $cmd"
-
 typeset user="bandit$level"
 typeset current_pwd_file="bandit$(printf '%02d' $level)"
 typeset next_pwd_file="bandit$(printf '%02d' $((level + 1)))"
+typeset entry
 typeset password
+typeset command
 typeset result
 typeset -i result_code
+
+# --- Load entry ---
+entry=$(jq -c ".[] | select(.level == $level)" "$ENTRY_JSON" 2>/dev/null)
+if [[ -z "$entry" ]]; then
+    logger "warn" "This level $level is still being solved. Updates will be posted soon."
+    exit 1
+fi
 
 # --- Load password if available ---
 if [[ -f "$PASS_DIR/$current_pwd_file" ]]; then
     password=$(< "$PASS_DIR/$current_pwd_file")
 else
-    logger "error" "Password for bandit$level not found in $PASS_DIR"
+    logger "error" "Password for level $level not found in $PASS_DIR"
     exit 1
 fi
 
+command=$(echo "$entry" | jq -r '.runner')
+logger "info" "CMD: $command"
+
 # --- Run Command ---
-result=$(remote_execute_command "$user" "$password" "$cmd")
+result=$(remote_execute_command "$user" "$password" "$command")
 result_code=$?
 
 if [[ $result_code -ne 0 ]]; then
