@@ -55,25 +55,27 @@ function remote_execute_command() {
     local user="$1"
     local pwd="$2"
     local cmd="$3"
+
     local ssh_cmd
-
-    local result_code
-
-    if [[ "true" == $interactive ]]; then
+    if [[ -z "$pwd" ]]; then
         ssh_cmd="ssh -o StrictHostKeyChecking=no -p $PORT ${user}@${HOST} \"$cmd\""
     else
         ssh_cmd="sshpass -p \"$pwd\" ssh -T -o LogLevel=ERROR -o StrictHostKeyChecking=no -p $PORT ${user}@${HOST} \"$cmd\""
     fi
 
+    local result_code
+    local result_file
     if [[ "true" == $dry_run ]]; then
-        result="$ssh_cmd"
+        rce_result="$ssh_cmd"
         result_code=0
     else
-        result=$(eval "$ssh_cmd")
+        result_file=$(mktemp)
+        eval "$ssh_cmd" >"$result_file"
         result_code=$?
+        rce_result=$(<"$result_file")
+        rm -f "$result_file"
     fi
 
-    echo $result
     return $((result_code & 0xFF))
 }
 
@@ -164,9 +166,6 @@ typeset quiet="false"
 typeset test="false"
 typeset dry_run="false"
 
-typeset level_input
-typeset -i level
-
 # --- Make directories ---
 mkdir -p "$PASS_DIR" "$LOG_DIR"
 
@@ -213,6 +212,7 @@ if [[ ! -f "$PASS_DIR/bandit00" ]]; then
 fi
 
 # --- Level selection ---
+typeset -i level
 if [[ -n $level_arg ]]; then
     if [[ $level_arg =~ '^[0-9]+$' && $level_arg -ge $START_LEVEL && $level_arg -lt $END_LEVEL ]]; then
         level=$level_arg
@@ -221,6 +221,7 @@ if [[ -n $level_arg ]]; then
         exit 1
     fi
 elif [[ "true" == $interactive ]]; then
+    local level_input
     echo
     while true; do
         read "level_input?Enter Bandit level (${START_LEVEL}~$((END_LEVEL - 1))): "
@@ -234,58 +235,56 @@ else
     logger "error" "No level provided and interactive mode disabled."
     exit 1
 fi
-
 logger "info" "LEVEL: $level"
 
-typeset user="bandit$level"
 typeset current_pwd_file="bandit$(printf '%02d' $level)"
-typeset next_pwd_file="bandit$(printf '%02d' $((level + 1)))"
-typeset entry
-typeset password
-typeset command
-typeset result
-typeset -i result_code
 
 # --- Load entry ---
-entry=$(jq -c ".[] | select(.level == $level)" "$ENTRY_JSON" 2>/dev/null)
+typeset entry=$(jq -c ".[] | select(.level == $level)" "$ENTRY_JSON" 2>/dev/null)
 if [[ -z "$entry" ]]; then
     logger "warn" "This level $level is still being solved. Updates will be posted soon."
     exit 1
 fi
 
 # --- Load password if available ---
+typeset loaded_password
 if [[ -f "$PASS_DIR/$current_pwd_file" ]]; then
-    password=$(< "$PASS_DIR/$current_pwd_file")
+    loaded_password=$(< "$PASS_DIR/$current_pwd_file")
 else
     logger "error" "Password for level $level not found in $PASS_DIR"
     exit 1
 fi
 
-command=$(echo "$entry" | jq -r '.runner')
+# --- Load command ---
+typeset command=$(echo "$entry" | jq -r '.runner')
 logger "info" "CMD: $command"
 
 # --- Run Command ---
-result=$(remote_execute_command "$user" "$password" "$command")
+typeset rce_result
+typeset -i result_code
+remote_execute_command "bandit$level" "$loaded_password" "$command"
 result_code=$?
-
 if [[ $result_code -ne 0 ]]; then
-    logger "error" "Command failed."
+    logger "error" "Command failed. (RC: $result_code)"
     exit 1
 fi
 
+# --- Logging result ---
+typeset next_level_pwd
 if [[ "true" == $dry_run ]]; then
     # --- Output SSH Command ---
-    logger "result" "[DRY-RUN] SSH Command: $result"
+    logger "result" "[DRY-RUN] SSH Command: $rce_result"
 else
     # --- Save password and Output password ---
-    echo "$result" > "$PASS_DIR/$next_pwd_file"
-    logger "result" "[Level $level → Level $((level + 1))] password: $result"
+    next_level_pwd="$rce_result"
+    local next_level_pwd_file="bandit$(printf '%02d' $((level + 1)))"
+    echo "$next_level_pwd" > "$PASS_DIR/$next_level_pwd_file"
+    logger "result" "[Level $level → Level $((level + 1))] password: $next_level_pwd"
 fi
 
 # Test only
 if [[ "true" == $test ]]; then
-    password="$result"
-    remote_execute_command "bandit$((level + 1))" "$password" "echo"
+    remote_execute_command "bandit$((level + 1))" "$next_level_pwd" "echo"
     result_code=$?
     if [[ $result_code -eq 0 ]]; then
         printf "\033[32m[RESULT]\033[0m Test: OK!\n"
