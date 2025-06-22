@@ -21,8 +21,8 @@ Automated solver for [OverTheWire: Bandit](https://overthewire.org/wargames/band
 - 🔐 Automatically inputs saved passwords via `sshpass`
 - 📜 Stores logs to `/tmp/bandit-auto-solver/logs/YYYY-MM-DD.log`
 - ✅ Saves passwords to `~/.bandit_pass/bandit##`
-- 🛠 Supports CLI options (`--level`, `--no-interactive`, `--quiet`, `--test`, `--dry-run`)
-- ⚙️ Makefile with commands to run, auto, test, clean
+- 🛠 Supports CLI options (`--level`, `--connect-only`, `--no-interactive`, `--quiet`, `--test`, `--dry-run`)
+- ⚙️ Makefile with commands to connect, run, auto, test, clean
 
 ## 📦 Project Structure
 
@@ -39,6 +39,10 @@ bandit-auto-solver/
 ## 🚀 Usage
 
 ```zsh
+# Connect only one level
+make connect
+make connect level={number}
+
 # Run one level interactively
 make run
 make run level={number}

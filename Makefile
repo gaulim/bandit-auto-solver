@@ -1,7 +1,16 @@
-.PHONY: run auto test clean
+.PHONY: connect run auto test clean
 
 # Optional CLI flags
 level ?=
+
+connect:
+	@printf "\n🔐 Connecting Bandit level script (bandit.zsh)...\n"
+	@zsh -c '\
+		cmd="./bandit.zsh --connect-only"; \
+		if [ -n "$(level)" ]; then cmd="$$cmd --level=$(level)"; fi; \
+		echo "🔧 Command: $$cmd"; \
+		eval "$$cmd" \
+	'
 
 run:
 	@printf "\n🚀 Running single Bandit level script (bandit.zsh)...\n"

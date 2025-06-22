@@ -68,6 +68,19 @@ function load_password() {
     fi
 }
 
+function remote_connect() {
+    local user="$1"
+    local pwd="$2"
+
+    if [[ -z "$pwd" ]]; then
+        ssh -o StrictHostKeyChecking=no -p $PORT ${user}@${HOST}
+    else
+        sshpass -p "$pwd" ssh -tt -o LogLevel=ERROR -o StrictHostKeyChecking=no -p $PORT ${user}@${HOST}
+    fi
+
+    return 0
+}
+
 function remote_execute_command() {
     local user="$1"
     local pwd="$2"
@@ -178,6 +191,7 @@ readonly LOG_DIR="/tmp/bandit-auto-solver/logs"
 typeset log_file="$(date +%F).log"  # YYYY-MM-DD.log
 
 typeset level_arg=""
+typeset connect_only="false"
 typeset interactive="true"
 typeset quiet="false"
 typeset test="false"
@@ -191,6 +205,9 @@ for arg in "$@"; do
     case $arg in
         --level=*)
             level_arg="${arg#*=}"
+            ;;
+        --connect-only)
+            connect_only="true"
             ;;
         --no-interactive)
             interactive="false"
@@ -249,6 +266,19 @@ else
 fi
 logger "info" "LEVEL: $level"
 
+# --- Load password ---
+typeset loaded_password
+load_password $level
+if [[ $? -ne 0 ]]; then
+    logger "warn" "Password for level $level not found in $PASS_DIR"
+fi
+
+# --- Connect only ---
+if [[ "true" == $connect_only ]]; then
+    remote_connect "bandit$level" "$loaded_password"
+    exit 0
+fi
+
 # --- Load entry ---
 typeset entry=$(jq -c ".[] | select(.level == $level)" "$ENTRY_JSON" 2>/dev/null)
 if [[ -z "$entry" ]]; then
@@ -259,13 +289,6 @@ fi
 # --- Load command ---
 typeset command=$(echo "$entry" | jq -r '.runner')
 logger "info" "CMD: $command"
-
-# --- Load password ---
-typeset loaded_password
-load_password $level
-if [[ $? -ne 0 ]]; then
-    logger "warn" "Password for level $level not found in $PASS_DIR"
-fi
 
 # --- Run Command ---
 typeset rce_result
