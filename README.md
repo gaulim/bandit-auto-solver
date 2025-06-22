@@ -41,6 +41,7 @@ bandit-auto-solver/
 ```zsh
 # Run one level interactively
 make run
+make run level={number}
 
 # Run all levels from 0 to 33
 make auto

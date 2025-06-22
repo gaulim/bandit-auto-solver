@@ -1,8 +1,16 @@
 .PHONY: run auto test clean
 
+# Optional CLI flags
+level ?=
+
 run:
 	@printf "\n🚀 Running single Bandit level script (bandit.zsh)...\n"
-	@zsh bandit.zsh
+	@zsh -c '\
+		cmd="./bandit.zsh"; \
+		if [ -n "$(level)" ]; then cmd="$$cmd --level=$(level)"; fi; \
+		echo "🔧 Command: $$cmd"; \
+		eval "$$cmd" \
+	'
 
 auto:
 	@printf "\n🤖 Running Bandit automation script (bandit-auto.zsh)...\n"
