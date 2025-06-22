@@ -51,6 +51,23 @@ function logger() {
     print -r -- "$log" >> "$LOG_DIR/$log_file"
 }
 
+function load_password() {
+    local level="${1:-0}"
+
+    if [[ 1 > $level ]]; then
+        loaded_password="bandit0"  # Level 0 password
+        return 0
+    fi
+
+    local password_file="bandit$(printf '%02d' $level)"
+    if [[ -f "$PASS_DIR/$password_file" ]]; then
+        loaded_password=$(< "$PASS_DIR/$password_file")
+        return $?
+    else
+        return 1
+    fi
+}
+
 function remote_execute_command() {
     local user="$1"
     local pwd="$2"
@@ -206,11 +223,6 @@ fi
 # --- Install require packages ---
 install_require_packages
 
-# --- Save level 0 password ---
-if [[ ! -f "$PASS_DIR/bandit00" ]]; then
-    echo "bandit0" > "$PASS_DIR/bandit00"
-fi
-
 # --- Level selection ---
 typeset -i level
 if [[ -n $level_arg ]]; then
@@ -237,8 +249,6 @@ else
 fi
 logger "info" "LEVEL: $level"
 
-typeset current_pwd_file="bandit$(printf '%02d' $level)"
-
 # --- Load entry ---
 typeset entry=$(jq -c ".[] | select(.level == $level)" "$ENTRY_JSON" 2>/dev/null)
 if [[ -z "$entry" ]]; then
@@ -246,18 +256,16 @@ if [[ -z "$entry" ]]; then
     exit 1
 fi
 
-# --- Load password if available ---
-typeset loaded_password
-if [[ -f "$PASS_DIR/$current_pwd_file" ]]; then
-    loaded_password=$(< "$PASS_DIR/$current_pwd_file")
-else
-    logger "error" "Password for level $level not found in $PASS_DIR"
-    exit 1
-fi
-
 # --- Load command ---
 typeset command=$(echo "$entry" | jq -r '.runner')
 logger "info" "CMD: $command"
+
+# --- Load password ---
+typeset loaded_password
+load_password $level
+if [[ $? -ne 0 ]]; then
+    logger "warn" "Password for level $level not found in $PASS_DIR"
+fi
 
 # --- Run Command ---
 typeset rce_result
