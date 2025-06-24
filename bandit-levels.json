@@ -10,5 +10,11 @@
         "description": "Read the file named '-' in the home directory. The filename is a single dash and must be properly referenced or escaped to avoid being interpreted as a command option.",
         "hint_cmd": "cat ./-",
         "runner": "cat ./- 2>/dev/null"
+    },
+    {
+        "level": 2,
+        "description": "Read the file named 'spaces in this filename' in the home directory. The filename contains spaces and must be properly quoted or escaped when accessed.",
+        "hint_cmd": "cat 'spaces in this filename'",
+        "runner": "cat 'spaces in this filename' 2>/dev/null"
     }
 ]
