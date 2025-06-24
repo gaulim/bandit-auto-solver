@@ -28,5 +28,11 @@
         "description": "Read the only human-readable file inside the inhere directory.",
         "hint_cmd": "find ./inhere -type f -exec file {} +",
         "runner": "find ./inhere -type f -exec file {} + 2>/dev/null | grep text | cut -d: -f1 | xargs cat 2>/dev/null"
+    },
+    {
+        "level": 5,
+        "description": "Read the file located somewhere under the inhere directory that meets all of the following conditions: it is human-readable, exactly 1033 bytes in size, and is not executable.",
+        "hint_cmd": "find . -type f -size 1033c ! -executable -exec file {} +",
+        "runner": "find . -type f -size 1033c ! -executable -exec file {} + 2>/dev/null | grep text | cut -d: -f1 | xargs cat 2>/dev/null | tr -d ' \\t' 2>/dev/null"
     }
 ]
