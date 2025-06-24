@@ -16,5 +16,11 @@
         "description": "Read the file named 'spaces in this filename' in the home directory. The filename contains spaces and must be properly quoted or escaped when accessed.",
         "hint_cmd": "cat 'spaces in this filename'",
         "runner": "cat 'spaces in this filename' 2>/dev/null"
+    },
+    {
+        "level": 3,
+        "description": "Read the hidden file located inside the inhere directory. The file name starts with a dot (.), so it is hidden by default. Use shell options to list hidden files and read its contents.",
+        "hint_cmd": "find ./inhere -type f -name '.*'",
+        "runner": "find ./inhere -type f -name '.*' -exec cat {} \\\\; 2>/dev/null"
     }
 ]
