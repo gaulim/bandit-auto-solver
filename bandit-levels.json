@@ -22,5 +22,11 @@
         "description": "Read the hidden file located inside the inhere directory. The file name starts with a dot (.), so it is hidden by default. Use shell options to list hidden files and read its contents.",
         "hint_cmd": "find ./inhere -type f -name '.*'",
         "runner": "find ./inhere -type f -name '.*' -exec cat {} \\\\; 2>/dev/null"
+    },
+    {
+        "level": 4,
+        "description": "Read the only human-readable file inside the inhere directory.",
+        "hint_cmd": "find ./inhere -type f -exec file {} +",
+        "runner": "find ./inhere -type f -exec file {} + 2>/dev/null | grep text | cut -d: -f1 | xargs cat 2>/dev/null"
     }
 ]
