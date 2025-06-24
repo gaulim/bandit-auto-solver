@@ -4,5 +4,11 @@
         "description": "Extract the password value from the 'readme' file by printing only the part after the colon.",
         "hint_cmd": "cat readme",
         "runner":"sed -n 's/^.*: //p' readme 2>/dev/null"
+    },
+    {
+        "level": 1,
+        "description": "Read the file named '-' in the home directory. The filename is a single dash and must be properly referenced or escaped to avoid being interpreted as a command option.",
+        "hint_cmd": "cat ./-",
+        "runner": "cat ./- 2>/dev/null"
     }
 ]
