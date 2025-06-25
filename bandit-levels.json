@@ -40,5 +40,11 @@
         "description": "Find the file somewhere on the server that is 33 bytes in size, owned by user 'bandit7' and group 'bandit6', then read its contents.",
         "hint_cmd": "find / -type f -user bandit7 -group bandit6 -size 33c 2>/dev/null",
         "runner": "find / -type f -user bandit7 -group bandit6 -size 33c 2>/dev/null | xargs cat 2>/dev/null"
+    },
+    {
+        "level": 7,
+        "description": "Search the file 'data.txt' for the word 'millionth' and read the value next to it to obtain the password.",
+        "hint_cmd": "grep 'millionth' data.txt",
+        "runner": "grep 'millionth' data.txt | cut -f2 2>/dev/null"
     }
 ]
