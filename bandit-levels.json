@@ -46,5 +46,11 @@
         "description": "Search the file 'data.txt' for the word 'millionth' and read the value next to it to obtain the password.",
         "hint_cmd": "grep 'millionth' data.txt",
         "runner": "grep 'millionth' data.txt | cut -f2 2>/dev/null"
+    },
+    {
+        "level": 8,
+        "description": "Find the only line that appears exactly once in the file 'data.txt' and read it to obtain the password.",
+        "hint_cmd": "sort data.txt | uniq -u",
+        "runner": "sort data.txt | uniq -u 2>/dev/null"
     }
 ]
