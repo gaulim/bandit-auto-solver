@@ -64,5 +64,11 @@
         "description": "Decode the Base64 content of 'data.txt' and read the resulting text to obtain the password.",
         "hint_cmd": "base64 -d data.txt",
         "runner": "base64 -d data.txt | awk '{print \\\\$NF}' 2>/dev/null"
+    },
+    {
+        "level": 11,
+        "description": "Apply ROT13 decoding to the contents of 'data.txt' and read the resulting text to obtain the password.",
+        "hint_cmd": "tr 'A-Za-z' 'N-ZA-Mn-za-m' < data.txt",
+        "runner": "tr 'A-Za-z' 'N-ZA-Mn-za-m' < data.txt | awk '{print \\\\$NF}' 2>/dev/null"
     }
 ]
