@@ -88,5 +88,12 @@
         "description": "Reconstruct and decompress the original file from the hexdump in 'data.txt' by reversing the multiple layers of compression, then read the extracted file to obtain the password.",
         "solve_type": "script",
         "runner": "plugins/bandit12"
+    },
+    {
+        "level": 13,
+        "description": "Use the provided private SSH key to connect as user 'bandit14' to localhost and read the password from '/etc/bandit_pass/bandit14'.",
+        "solve_type": "command",
+        "hint_cmd": "ssh -p 2220 -i sshkey.private bandit14@localhost -o StrictHostKeyChecking=no",
+        "runner": "ssh -p 2220 -i sshkey.private bandit14@localhost -o StrictHostKeyChecking=no 'cat /etc/bandit_pass/bandit14' 2>/dev/null"
     }
 ]
