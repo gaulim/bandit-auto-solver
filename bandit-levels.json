@@ -82,5 +82,11 @@
         "solve_type": "command",
         "hint_cmd": "tr 'A-Za-z' 'N-ZA-Mn-za-m' < data.txt",
         "runner": "tr 'A-Za-z' 'N-ZA-Mn-za-m' < data.txt | awk '{print \\\\$NF}' 2>/dev/null"
+    },
+    {
+        "level": 12,
+        "description": "Reconstruct and decompress the original file from the hexdump in 'data.txt' by reversing the multiple layers of compression, then read the extracted file to obtain the password.",
+        "solve_type": "script",
+        "runner": "plugins/bandit12"
     }
 ]

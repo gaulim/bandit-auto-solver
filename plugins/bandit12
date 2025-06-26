@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# Final result to print
+# SC2155: Assignments in declare are safe in this context
+declare result=""
+
+# Create a temporary directory
+# SC2155: Use separate assignment if return value is needed later (not needed here)
+declare temp_dir
+temp_dir=$(mktemp -d)
+
+# Initial file information
+declare file_name="decompressed_file"
+declare file_type
+declare unpacked_file
+
+# Convert hexdump file into binary format
+# SC2086: Quoting $file_name is safe, and data.txt is assumed to be in the same directory
+xxd -r data.txt > "$temp_dir/$file_name" 2>/dev/null
+
+while true; do
+    # Check the file type of the binary
+    # SC2046: Safe quoting is applied
+    file_type=$(file "$temp_dir/$file_name" 2>/dev/null | grep -o -E 'gzip|bzip2|tar|ASCII' 2>/dev/null)
+
+    # Repeatedly decompress until we get a final ASCII file, then extract its contents
+    case $file_type in
+        gzip)
+            # Rename to .gz and decompress
+            mv "$temp_dir/$file_name" "$temp_dir/$file_name.gz" >/dev/null 2>&1
+            gunzip "$temp_dir/$file_name.gz" >/dev/null 2>&1
+            ;;
+        bzip2)
+            # Rename to .bz2 and decompress
+            mv "$temp_dir/$file_name" "$temp_dir/$file_name.bz2" >/dev/null 2>&1
+            bzip2 -d "$temp_dir/$file_name.bz2" >/dev/null 2>&1
+            ;;
+        tar)
+            # Rename to .tar and extract it
+            mv "$temp_dir/$file_name" "$temp_dir/$file_name.tar" >/dev/null 2>&1
+            # SC2162: Use awk instead of read to avoid potential quoting issues
+            unpacked_file=$(tar xvf "$temp_dir/$file_name.tar" -C "$temp_dir" 2>/dev/null | awk '{print $NF}' 2>/dev/null)
+            mv "$temp_dir/$unpacked_file" "$temp_dir/$file_name" >/dev/null 2>&1
+            rm -f "$temp_dir/$file_name.tar" >/dev/null 2>&1
+            ;;
+        ASCII)
+            # Extract the password string (min length 32 chars, 4th column)
+            # SC2002: strings used directly with pipe, acceptable in this controlled case
+            result=$(strings -n 32 "$temp_dir/$file_name" 2>/dev/null | awk '{print $NF}' 2>/dev/null)
+            break
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+# Remove the temporary directory
+# SC2115: $temp_dir is generated securely with mktemp, safe to delete
+rm -rf "$temp_dir"
+
+# Print the final result
+echo "$result"
+
+exit 0
