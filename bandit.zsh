@@ -109,6 +109,39 @@ function remote_execute_command() {
     return $((result_code & 0xFF))
 }
 
+function remote_execute_script() {
+    local user="$1"
+    local pwd="$2"
+    local script="$3"
+
+    if [[ ! -f "$script" ]]; then
+        logger "error" "❌ Not found script file."
+        return 1
+    fi
+
+    local ssh_cmd
+    if [[ -z "$pwd" ]]; then
+        ssh_cmd="< \"$script\" ssh -o StrictHostKeyChecking=no -p $PORT ${user}@${HOST} \"bash\""
+    else
+        ssh_cmd="< \"$script\" sshpass -p \"$pwd\" ssh -T -o LogLevel=ERROR -o StrictHostKeyChecking=no -p $PORT ${user}@${HOST} \"bash\""
+    fi
+
+    local result_code
+    local result_file
+    if [[ "true" == $dry_run ]]; then
+        rce_result="$ssh_cmd"
+        result_code=0
+    else
+        result_file=$(mktemp)
+        eval "$ssh_cmd" >"$result_file"
+        result_code=$?
+        rce_result=$(<"$result_file")
+        rm -f "$result_file"
+    fi
+
+    return $((result_code & 0xFF))
+}
+
 # Usage: install_if_command_not_exist <command_name> [<package_name>]
 function install_if_command_not_exist() {
     local command_name="$1"
@@ -286,15 +319,22 @@ if [[ -z "$entry" ]]; then
     exit 1
 fi
 
-# --- Load command ---
-typeset command=$(echo "$entry" | jq -r '.runner')
-logger "info" "CMD: $command"
+# --- Load runner ---
+typeset solve_type=$(echo "$entry" | jq -r '.solve_type')
+typeset runner=$(echo "$entry" | jq -r '.runner')
+logger "info" "Solve Type: $solve_type"
+logger "info" "Runner: $runner"
 
 # --- Run Command ---
 typeset rce_result
 typeset -i result_code
-remote_execute_command "bandit$level" "$loaded_password" "$command"
-result_code=$?
+if [[ $solve_type == "command" ]]; then
+    remote_execute_command "bandit$level" "$loaded_password" "$runner"
+    result_code=$?
+elif [[ $solve_type == "script" ]]; then
+    remote_execute_script "bandit$level" "$loaded_password" "$runner"
+    result_code=$?
+fi
 if [[ $result_code -ne 0 ]]; then
     logger "error" "Command failed. (RC: $result_code)"
     exit 1
