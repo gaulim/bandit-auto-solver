@@ -95,5 +95,12 @@
         "solve_type": "command",
         "hint_cmd": "ssh -p 2220 -i sshkey.private bandit14@localhost -o StrictHostKeyChecking=no",
         "runner": "ssh -p 2220 -i sshkey.private bandit14@localhost -o StrictHostKeyChecking=no 'cat /etc/bandit_pass/bandit14' 2>/dev/null"
+    },
+    {
+        "level": 14,
+        "description": "Connect to port 30000 on localhost and submit the current level’s password to retrieve the next password.",
+        "solve_type": "command",
+        "hint_cmd": "cat /etc/bandit_pass/bandit14 | nc localhost 30000",
+        "runner": "cat /etc/bandit_pass/bandit14 | nc localhost 30000 | strings -n 32 2>/dev/null"
     }
 ]
