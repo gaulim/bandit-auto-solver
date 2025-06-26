@@ -21,7 +21,7 @@ function show_spinner() {
     tput civis  # Hide cursor
     while kill -0 $pid 2>/dev/null; do
         for ((i = 0; i < ${#spin_chars}; i++)); do
-            printf "\r[%c] [Level $level → Level $((level + 1))] 🔍 ..." "${spin_chars:$i:1}"
+            printf "\r[%c] [Level %02d → Level %02d] 🔍 ..." "${spin_chars:$i:1}" "$level" "$((level + 1))"
             sleep $delay
         done
     done
@@ -65,8 +65,8 @@ for ((level = START_LEVEL; level <= END_LEVEL; level++)); do
     # Load password for next level
     load_password $((level + 1))
     if [[ $? -eq 0 && $loaded_password =~ '^[A-Za-z0-9]{32}$' ]]; then
-        printf "\r[O] [Level $level → Level $((level + 1))] ✅ password: $loaded_password\n"
-        printf "[ ] [Level $((level + 1)) → Level $((level + 2))] 🔍 ..."
+        printf "\r[O] [Level %02d → Level %02d] ✅ password: %s\n" "$level" "$((level + 1))" "$loaded_password"
+        printf "[ ] [Level %02d → Level %02d] 🔍 ..." "$((level + 1))" "$((level + 2))"
         continue;
     fi
 
@@ -80,11 +80,11 @@ for ((level = START_LEVEL; level <= END_LEVEL; level++)); do
 
     if [[ $RESULT_CODE -eq 0 ]]; then
         load_password $((level + 1))
-        printf "\r[O] [Level $level → Level $((level + 1))] ✅ password: $loaded_password\n"
-        printf "[ ] [Level $((level + 1)) → Level $((level + 2))] 🔍 ..."
+        printf "\r[O] [Level %02d → Level %02d] ✅ password: %s\n" "$level" "$((level + 1))" "$loaded_password"
+        printf "[ ] [Level %02d → Level %02d] 🔍 ..." "$((level + 1))" "$((level + 2))"
         sleep 1
     else
-        printf "[X] [Level $level → Level $((level + 1))] ❌ failed.\n"
+        printf "[X] [Level %02d → Level %02d] ❌ failed.\n" "$level" "$((level + 1))"
         break
     fi
 done
