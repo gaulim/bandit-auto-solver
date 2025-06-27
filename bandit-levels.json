@@ -102,5 +102,12 @@
         "solve_type": "command",
         "hint_cmd": "cat /etc/bandit_pass/bandit14 | nc localhost 30000",
         "runner": "cat /etc/bandit_pass/bandit14 | nc localhost 30000 | strings -n 32 2>/dev/null"
+    },
+    {
+        "level": 15,
+        "description": "Connect to port 30001 on localhost using SSL/TLS, submit the current level’s password, and read the response to obtain the next password.",
+        "solve_type": "command",
+        "hint_cmd": "cat '/etc/bandit_pass/bandit15' | openssl s_client -quiet -connect localhost:30001 -ign_eof",
+        "runner": "cat '/etc/bandit_pass/bandit15' | ncat --ssl localhost 30001 | strings -n 32 2>/dev/null"
     }
 ]
