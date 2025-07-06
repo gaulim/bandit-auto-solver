@@ -320,20 +320,23 @@ if [[ -z "$entry" ]]; then
 fi
 
 # --- Load runner ---
-typeset solve_type=$(echo "$entry" | jq -r '.solve_type')
+typeset solve_type=$(echo "$entry" | jq -r '.solve_type // empty')
 typeset runner=$(echo "$entry" | jq -r '.runner')
+[[ -z "$solve_type" ]] && solve_type="command"
 logger "info" "Solve Type: $solve_type"
 logger "info" "Runner: $runner"
 
 # --- Run Command ---
 typeset rce_result
 typeset -i result_code
-if [[ $solve_type == "command" ]]; then
+if [[ "$solve_type" == "command" ]]; then
     remote_execute_command "bandit$level" "$loaded_password" "$runner"
     result_code=$?
-elif [[ $solve_type == "script" ]]; then
+elif [[ "$solve_type" == "script" ]]; then
     remote_execute_script "bandit$level" "$loaded_password" "$runner"
     result_code=$?
+else
+    result_code=1
 fi
 if [[ $result_code -ne 0 ]]; then
     logger "error" "Command failed. (RC: $result_code)"

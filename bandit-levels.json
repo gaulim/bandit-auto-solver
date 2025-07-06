@@ -2,84 +2,72 @@
     {
         "level": 0,
         "description": "Extract the password value from the 'readme' file by printing only the part after the colon.",
-        "solve_type": "command",
         "hint_cmd": "cat readme",
         "runner":"sed -n 's/^.*: //p' readme 2>/dev/null"
     },
     {
         "level": 1,
         "description": "Read the file named '-' in the home directory. The filename is a single dash and must be properly referenced or escaped to avoid being interpreted as a command option.",
-        "solve_type": "command",
         "hint_cmd": "cat ./-",
         "runner": "cat ./- 2>/dev/null"
     },
     {
         "level": 2,
         "description": "Read the file named 'spaces in this filename' in the home directory. The filename contains spaces and must be properly quoted or escaped when accessed.",
-        "solve_type": "command",
         "hint_cmd": "cat 'spaces in this filename'",
         "runner": "cat 'spaces in this filename' 2>/dev/null"
     },
     {
         "level": 3,
         "description": "Read the hidden file located inside the inhere directory. The file name starts with a dot (.), so it is hidden by default. Use shell options to list hidden files and read its contents.",
-        "solve_type": "command",
         "hint_cmd": "find ./inhere -type f -name '.*'",
         "runner": "find ./inhere -type f -name '.*' -exec cat {} \\\\; 2>/dev/null"
     },
     {
         "level": 4,
         "description": "Read the only human-readable file inside the inhere directory.",
-        "solve_type": "command",
         "hint_cmd": "find ./inhere -type f -exec file {} +",
         "runner": "find ./inhere -type f -exec file {} + 2>/dev/null | grep text | cut -d: -f1 | xargs cat 2>/dev/null"
     },
     {
         "level": 5,
         "description": "Read the file located somewhere under the inhere directory that meets all of the following conditions: it is human-readable, exactly 1033 bytes in size, and is not executable.",
-        "solve_type": "command",
         "hint_cmd": "find . -type f -size 1033c ! -executable -exec file {} +",
         "runner": "find . -type f -size 1033c ! -executable -exec file {} + 2>/dev/null | grep text | cut -d: -f1 | xargs cat 2>/dev/null | tr -d ' \\t' 2>/dev/null"
     },
     {
         "level": 6,
         "description": "Find the file somewhere on the server that is 33 bytes in size, owned by user 'bandit7' and group 'bandit6', then read its contents.",
-        "solve_type": "command",
         "hint_cmd": "find / -type f -user bandit7 -group bandit6 -size 33c 2>/dev/null",
         "runner": "find / -type f -user bandit7 -group bandit6 -size 33c 2>/dev/null | xargs cat 2>/dev/null"
     },
     {
         "level": 7,
         "description": "Search the file 'data.txt' for the word 'millionth' and read the value next to it to obtain the password.",
-        "solve_type": "command",
         "hint_cmd": "grep 'millionth' data.txt",
         "runner": "grep 'millionth' data.txt | cut -f2 2>/dev/null"
     },
     {
         "level": 8,
         "description": "Find the only line that appears exactly once in the file 'data.txt' and read it to obtain the password.",
-        "solve_type": "command",
         "hint_cmd": "sort data.txt | uniq -u",
         "runner": "sort data.txt | uniq -u 2>/dev/null"
     },
     {
         "level": 9,
         "description": "Search the file 'data.txt' for human-readable strings and find the one that is preceded by several '=' characters to obtain the password.",
-        "solve_type": "command",
         "hint_cmd": "strings -n 32 data.txt",
         "runner": "strings -n 32 data.txt | grep -E '^==+' | cut -d ' ' -f 2 2>/dev/null"
     },
     {
         "level": 10,
         "description": "Decode the Base64 content of 'data.txt' and read the resulting text to obtain the password.",
-        "solve_type": "command",
         "hint_cmd": "base64 -d data.txt",
         "runner": "base64 -d data.txt | awk '{print \\\\$NF}' 2>/dev/null"
     },
     {
         "level": 11,
         "description": "Apply ROT13 decoding to the contents of 'data.txt' and read the resulting text to obtain the password.",
-        "solve_type": "command",
         "hint_cmd": "tr 'A-Za-z' 'N-ZA-Mn-za-m' < data.txt",
         "runner": "tr 'A-Za-z' 'N-ZA-Mn-za-m' < data.txt | awk '{print \\\\$NF}' 2>/dev/null"
     },
@@ -92,21 +80,18 @@
     {
         "level": 13,
         "description": "Use the provided private SSH key to connect as user 'bandit14' to localhost and read the password from '/etc/bandit_pass/bandit14'.",
-        "solve_type": "command",
         "hint_cmd": "ssh -p 2220 -i sshkey.private bandit14@localhost -o StrictHostKeyChecking=no",
         "runner": "ssh -p 2220 -i sshkey.private bandit14@localhost -o StrictHostKeyChecking=no 'cat /etc/bandit_pass/bandit14' 2>/dev/null"
     },
     {
         "level": 14,
         "description": "Connect to port 30000 on localhost and submit the current level’s password to retrieve the next password.",
-        "solve_type": "command",
         "hint_cmd": "cat /etc/bandit_pass/bandit14 | nc localhost 30000",
         "runner": "cat /etc/bandit_pass/bandit14 | nc localhost 30000 | strings -n 32 2>/dev/null"
     },
     {
         "level": 15,
         "description": "Connect to port 30001 on localhost using SSL/TLS, submit the current level’s password, and read the response to obtain the next password.",
-        "solve_type": "command",
         "hint_cmd": "cat '/etc/bandit_pass/bandit15' | openssl s_client -quiet -connect localhost:30001 -ign_eof",
         "runner": "cat '/etc/bandit_pass/bandit15' | ncat --ssl localhost 30001 | strings -n 32 2>/dev/null"
     }
